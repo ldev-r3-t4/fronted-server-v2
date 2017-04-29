@@ -1,0 +1,11 @@
+{
+    "idCount" : 0,
+    
+    "channels": [
+        {
+            "name" : "testcname",
+            "desc" : "testcdesc",
+            "id" : 0
+        }
+    ]
+}
