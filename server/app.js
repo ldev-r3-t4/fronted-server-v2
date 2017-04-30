@@ -76,29 +76,17 @@ app.get('/channels/:cid/posts/:pid', function(req, res){
 });
 
 app.put('/channels/:cid/posts/:pid', function(req, res){
-    var cid = req.params.cid;
-    var pid = req.params.pid;
-    var newPost = req.body;
-
-    getChannelById(res, cid)
-    .then(putPostFromChannelById.bind(null, res, pid, newPost), failChain)
-    .then(putChannel.bind(null, res, cid), failChain)
+    getStorage(res)
+    .then(putPostFromChannelById.bind(null, req, res), failChain)
     .then(sendResponseSuccess.bind(null, res),
           sendResponseFailure.bind(null, res));
-
-
 });
 
 app.delete('/channels/:cid/posts/:pid', function(req, res){
-    var cid = req.params.cid;
-    var pid = req.params.pid;
-
-     getChannelById(res, cid)
-    .then(delPostFromChannelById.bind(null, res, pid), failChain)
-    .then(putChannel.bind(null, res, cid), failChain)
+    getStorage(res)
+    .then(delPostFromChannelById.bind(null, req, res), failChain)
     .then(sendResponseSuccess.bind(null, res),
           sendResponseFailure.bind(null, res));
-
 });
 
 app.get('/test', (req, res) => {
@@ -217,7 +205,9 @@ function postChannel(req, res, storage_response){
             res.status(500);
             deferred.reject("Error when requesting from storage: " + error.code);
         } else if(response.statusCode == 200){
-            deferred.resolve(body);
+            res.status(200);
+            deferred.resolve(newId.toString());
+            // deferred.resolve(body);
         } else {
             console.log(body);
             res.status(500);
@@ -311,15 +301,20 @@ function getChannelById(req, res, storage_response){
     if(storage_response.body != null){
         if("channels" in storage_response.body){
             var channels = storage_response.body.channels;
+            var foundCid = false;
             for(i=0; i<channels.length; i++){
                 if(channels[i].id == req.params.cid) {
+                    foundCid = true;
                     console.log(channels[i].id);
                     console.log(channels[i]);
+                    res.status(200);
                     deferred.resolve(channels[i]);
                 }
             }
-            res.status(404);
-            deferred.reject("No channel with that id");
+            if(!foundCid){
+                res.status(404);
+                deferred.reject("No channel with that id");
+            }
         } else {
             res.status(500);
             deferred.reject("Could not find and channels");
@@ -452,7 +447,7 @@ function addPostToChannel(req, res, storage_response){
                 res.status(500);
                 deferred.reject("Error when requesting from storage: " + error.code);
             } else if(response.statusCode == 200){
-                deferred.resolve(body);
+                deferred.resolve(newPost.id.toString());
             } else {
                 console.log(body);
                 res.status(500);
@@ -471,21 +466,30 @@ function getPostFromChannelById(req, res, storage_response){
     var pid = req.params.pid;
     if(storage_response.body != null){
         if("channels" in storage_response.body){
+            var foundCid = false;
             var channels = storage_response.body.channels;
             for(i=0; i<channels.length; i++){
                 if(channels[i].id == cid) {
+                    var foundCid = true;
+                    var foundPid = false;
                     var posts = channels[i].posts;
                     for(j=0; j<posts.length; j++){
                         if(posts[j].id == pid){
+                            var foundPid = true;
+                            res.status(200);
                             deferred.resolve(posts[j]);
                         }
                     }
-                    res.status(404);
-                    deferred.reject("No post with that pid");
+                    if(!foundPid){
+                        res.status(404);
+                        deferred.reject("No post with that pid");
+                    }
                 }
             }
-            res.status(404);
-            deferred.reject("No channel with that cid");
+            if(!foundCid){
+                res.status(404);
+                deferred.reject("No channel with that cid");
+            }
         } else {
             res.status(500);
             deferred.reject("Could not find and channels");
@@ -497,46 +501,167 @@ function getPostFromChannelById(req, res, storage_response){
     return deferred.promise;
 };
 
-
-function putPostFromChannelById(res, pid, newPost, channel){
+function putPostFromChannelById(req, res, storage_response){
+    console.log("putPostFromChannelById called");
     var deferred = q.defer();
-    //console.log(channel);
-    var posts = channel['posts'];
-    var foundPost = false;
-    for(i=0; i<posts.length; i++){
-        if(posts[i]['id'] == pid){
-            foundPost = true;
-            newPost['id'] = parseInt(pid);
-            posts[i] = newPost;
-            channel['posts'] = posts;
-            deferred.resolve(channel);
+    var newPost = req.body;
+    var cid = req.params.cid;
+    var pid = req.params.pid;
+    var channels = [];
+    var newId = 0;
+    if(storage_response.body != null){
+        if("channels" in storage_response.body){
+            channels = storage_response.body.channels;
         }
-
+        if("idCount" in storage_response.body){
+            newId = storage_response.body.idCount;
+        }
     }
-    if(!foundPost){
-        res.status(404);
+
+    var foundCid = false;
+    var foundPid = false;
+    for(i=0; i<channels.length; i++){
+        if(channels[i].id == cid){
+            foundCid = true;
+            console.log('here');
+            var posts = channels[i].posts;
+            for(j=0; j<posts.length; j++){
+                if(posts[j].id == pid){
+            console.log('here2');
+                    var foundPid = true;
+                    temp_id = posts[j].id;
+                    posts[j] = newPost;
+                    posts[j].id = temp_id;
+                    channels[i].posts = posts;
+                }
+            }
+        }
+    }
+
+    if(!foundCid){
+        res.status(400);
+        deferred.reject("No channel with id: " + cid);
+    } else if(!foundPid) {
+        res.status(400);
         deferred.reject("No post with id: " + pid);
-    }
-    return deferred.promise;   
-}
-
-function delPostFromChannelById(res, pid, channel){
-    var deferred = q.defer();
-    var postFound = false
-    for(i=0; i< channel['posts'].length; i++){
-        if(channel['posts'][i]['id'] == pid){
-            channel['posts'].splice(i, 1);
-            postFound = true;
-        }
-    }
-    if(postFound){
-        deferred.resolve(channel);
     } else {
-        res.status(404);
-        deferred.reject("No post with id: " + pid);
+        var version = storage_response.version.toString();
+        if(version != 0){
+            version++;
+        }
+        var storage_path = ('/v1/primary/ver=') + version;
+        var option_url = 'http://' + storage_url + ':' + storage_port + storage_path + '/';
+        console.log(option_url);
+        console.log("AFTER");
+        console.log(channels);
+        var newBody = {
+            idCount: newId,
+            channels: channels
+        };
+        console.log("Posting newBody");
+        console.log(newBody);
+        var options = {
+            url: option_url,
+            method: "POST",
+            json: true,   
+            body: newBody
+        
+        };
+        request(options, function(error, response, body) {
+            if(error){
+                res.status(500);
+                deferred.reject("Error when requesting from storage: " + error.code);
+            } else if(response.statusCode == 200){
+                deferred.resolve(body);
+            } else {
+                console.log(body);
+                res.status(500);
+                deferred.reject("Cannot add post to channel.");
+            }
+        });
     }
     return deferred.promise;
 }
+
+function delPostFromChannelById(req, res, storage_response){
+    console.log("delPostFromChannelById called");
+    var deferred = q.defer();
+    var newPost = req.body;
+    var cid = req.params.cid;
+    var pid = req.params.pid;
+    var channels = [];
+    var newId = 0;
+    if(storage_response.body != null){
+        if("channels" in storage_response.body){
+            channels = storage_response.body.channels;
+        }
+        if("idCount" in storage_response.body){
+            newId = storage_response.body.idCount;
+        }
+    }
+
+    var foundCid = false;
+    var foundPid = false;
+    for(i=0; i<channels.length; i++){
+        if(channels[i].id == cid){
+            foundCid = true;
+            var posts = channels[i].posts;
+            for(j=0; j<posts.length; j++){
+                if(posts[j].id == pid){
+                    var foundPid = true;
+                    posts.splice(j, 1);
+                    channels[i].posts = posts;
+                }
+            }
+        }
+    }
+
+    if(!foundCid){
+        res.status(400);
+        deferred.reject("No channel with id: " + cid);
+    } else if(!foundPid) {
+        res.status(400);
+        deferred.reject("No post with id: " + pid);
+    } else {
+        var version = storage_response.version.toString();
+        if(version != 0){
+            version++;
+        }
+        var storage_path = ('/v1/primary/ver=') + version;
+        var option_url = 'http://' + storage_url + ':' + storage_port + storage_path + '/';
+        console.log(option_url);
+        console.log("AFTER");
+        console.log(channels);
+        var newBody = {
+            idCount: newId,
+            channels: channels
+        };
+        console.log("Posting newBody");
+        console.log(newBody);
+        var options = {
+            url: option_url,
+            method: "POST",
+            json: true,   
+            body: newBody
+        
+        };
+        request(options, function(error, response, body) {
+            if(error){
+                res.status(500);
+                deferred.reject("Error when requesting from storage: " + error.code);
+            } else if(response.statusCode == 200){
+                deferred.resolve(body);
+            } else {
+                console.log(body);
+                res.status(500);
+                deferred.reject("Cannot add post to channel.");
+            }
+        });
+    }
+    return deferred.promise;
+}
+
+
 
 function sendResponseSuccess(res, data){
     console.log();
@@ -723,6 +848,48 @@ function postChannel(req, res, channel){
 //         }
 //     });
 //     if(!foundPost){
+//         res.status(404);
+//         deferred.reject("No post with id: " + pid);
+//     }
+//     return deferred.promise;
+// }
+
+
+// function putPostFromChannelById(res, pid, newPost, channel){
+//     var deferred = q.defer();
+//     //console.log(channel);
+//     var posts = channel['posts'];
+//     var foundPost = false;
+//     for(i=0; i<posts.length; i++){
+//         if(posts[i]['id'] == pid){
+//             foundPost = true;
+//             newPost['id'] = parseInt(pid);
+//             posts[i] = newPost;
+//             channel['posts'] = posts;
+//             deferred.resolve(channel);
+//         }
+
+//     }
+//     if(!foundPost){
+//         res.status(404);
+//         deferred.reject("No post with id: " + pid);
+//     }
+//     return deferred.promise;   
+// }
+
+
+// function delPostFromChannelById(res, pid, channel){
+//     var deferred = q.defer();
+//     var postFound = false
+//     for(i=0; i< channel['posts'].length; i++){
+//         if(channel['posts'][i]['id'] == pid){
+//             channel['posts'].splice(i, 1);
+//             postFound = true;
+//         }
+//     }
+//     if(postFound){
+//         deferred.resolve(channel);
+//     } else {
 //         res.status(404);
 //         deferred.reject("No post with id: " + pid);
 //     }
