@@ -47,11 +47,11 @@ EndPoints (posts-server)
 - /posts/:id 
 -->
 
-Started working on Postman Tests
+## Postman Tests
 ---
-*AWS host  
+### AWS host  
 - [API Collection Link](https://www.getpostman.com/collections/85cd9d4682870331dc21)
 - [Testing Collection Link](https://www.getpostman.com/collections/f05450926448812cbd5d)
-*localhost  
+### localhost  
 - [API Collection Link](https://www.getpostman.com/collections/a9310d90304242443007)
 - [Testing Collection Link](https://www.getpostman.com/collections/4e29fe66253e824769f5)
