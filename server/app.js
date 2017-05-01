@@ -7,27 +7,42 @@ app.use(bodyParser.json());
 var morgan = require('morgan');
 app.use(morgan('tiny'));
 
+var analytics_url = "52.37.198.100";
+var analytics_port = 80;
+
 var storage_url = "ec2-54-69-164-246.us-west-2.compute.amazonaws.com";
 var storage_port = 8000;
 
 app.get('/channels', function(req, res){
     console.log('get channel');
+    var receivedDate = new Date();
+    res.analytics = {
+        eventName: "AllChannels",
+        AllChannels: {
+            "total_channels": 0,
+            "success": false
+        }
+    }
     getStorage(res)
     .then(getChannels.bind(null, req, res), failChain)
-    .then(sendResponseSuccess.bind(null, res),
-          sendResponseFailure.bind(null, res));
-
-    // getChannels(res)
-    // .then(sendResponseSuccess.bind(null, res),
-    //       sendResponseFailure.bind(null, res));
+    .then(sendResponseSuccess.bind(null, res, receivedDate),
+          sendResponseFailure.bind(null, res, receivedDate));
 });
 
 app.post('/channels', function(req, res){
     console.log('post channel');
+    var receivedDate = new Date();
+    res.analytics = {
+        eventName: "CreateChannel",
+        CreateChannel: {
+            channel_name_length: 1,
+            success: false
+        }
+    }
     getStorage(res)
     .then(postChannel.bind(null, req, res), failChain)
-    .then(sendResponseSuccess.bind(null, res),
-          sendResponseFailure.bind(null, res));
+    .then(sendResponseSuccess.bind(null, res, receivedDate),
+          sendResponseFailure.bind(null, res, receivedDate));
 
     // channel = req.body;
     // postChannel(req, res, channel)
@@ -37,11 +52,19 @@ app.post('/channels', function(req, res){
 
 app.get('/channels/:cid', function(req, res){
     var cid = req.params.cid;
+    var receivedDate = new Date();
+    res.analytics = {
+        eventName: "GetChannel",
+        GetChannel: {
+            channel_id: req.params.cid,
+            success: false
+        }
+    }
 
     getStorage(res)
     .then(getChannelById.bind(null, req, res), failChain)
-    .then(sendResponseSuccess.bind(null, res),
-          sendResponseFailure.bind(null, res));
+    .then(sendResponseSuccess.bind(null, res, receivedDate),
+          sendResponseFailure.bind(null, res, receivedDate));
 
     // getChannelById(res, cid)
     // .then(sendResponseSuccess.bind(null, res),
@@ -50,10 +73,18 @@ app.get('/channels/:cid', function(req, res){
 });
 
 app.delete('/channels/:cid', function(req, res){
+    var receivedDate = new Date();
+    res.analytics = {
+        eventName: "DelChannel",
+        DelChannel: {
+            channel_id: req.params.cid,
+            success: false
+        }
+    }
     getStorage(res)
     .then(deleteChannelById.bind(null, req, res), failChain)
-    .then(sendResponseSuccess.bind(null, res),
-          sendResponseFailure.bind(null, res));
+    .then(sendResponseSuccess.bind(null, res, receivedDate),
+          sendResponseFailure.bind(null, res, receivedDate));
 
     // deleteChannelById(res, cid)
     // .then(sendResponseSuccess.bind(null, res),
@@ -61,40 +92,79 @@ app.delete('/channels/:cid', function(req, res){
 });
 
 app.post('/channels/:cid/posts', function(req, res){
+    var receivedDate = new Date();
+    res.analytics = {
+        eventName: "SendMessage",
+        SendMessage: {
+            message_length: 0,
+            channel_id: req.params.cid,
+            success: false
+        }
+    }
     getStorage(res)
     .then(addPostToChannel.bind(null, req, res), failChain)
-    .then(sendResponseSuccess.bind(null, res),
-          sendResponseFailure.bind(null, res));
+    .then(sendResponseSuccess.bind(null, res, receivedDate),
+          sendResponseFailure.bind(null, res, receivedDate));
 
 });
 
 app.get('/channels/:cid/posts/:pid', function(req, res){
+    var receivedDate = new Date();
+    res.analytics = {
+        eventName: "GetMessage",
+        GetMessage: {
+            message_length: 0,
+            channel_id: req.params.cid,
+            post_id: req.params.pid,
+            success: false
+        }
+    }
      getStorage(res)
     .then(getPostFromChannelById.bind(null, req, res), failChain)
-    .then(sendResponseSuccess.bind(null, res),
-          sendResponseFailure.bind(null, res));
+    .then(sendResponseSuccess.bind(null, res, receivedDate),
+          sendResponseFailure.bind(null, res, receivedDate));
 });
 
 app.put('/channels/:cid/posts/:pid', function(req, res){
+    var receivedDate = new Date();
+    res.analytics = {
+        eventName: "UpdateMessage",
+        UpdateMessage: {
+            message_length: 0,
+            channel_id: req.params.cid,
+            post_id: req.params.pid,
+            success: false
+        }
+    }
     getStorage(res)
     .then(putPostFromChannelById.bind(null, req, res), failChain)
-    .then(sendResponseSuccess.bind(null, res),
-          sendResponseFailure.bind(null, res));
+    .then(sendResponseSuccess.bind(null, res, receivedDate),
+          sendResponseFailure.bind(null, res, receivedDate));
 });
 
 app.delete('/channels/:cid/posts/:pid', function(req, res){
+    var receivedDate = new Date();
+    res.analytics = {
+        eventName: "DeleteMessage",
+        DeleteMessage: {
+            channel_id: req.params.cid,
+            post_id: req.params.pid,
+            success: false
+        }
+    }
     getStorage(res)
     .then(delPostFromChannelById.bind(null, req, res), failChain)
-    .then(sendResponseSuccess.bind(null, res),
-          sendResponseFailure.bind(null, res));
+    .then(sendResponseSuccess.bind(null, res, receivedDate),
+          sendResponseFailure.bind(null, res, receivedDate));
 });
 
 app.get('/test', (req, res) => {
+    var receivedDate = new Date();
     console.log('test path');
     getStorage(res)
     // .then(postChannelToStorage.bind(null, req, res), failChain)
-    .then(sendResponseSuccess.bind(null, res),
-          sendResponseFailure.bind(null, res));
+    .then(sendResponseSuccess.bind(null, res, receivedDate),
+          sendResponseFailure.bind(null, res, receivedDate));
 });
 
 
@@ -126,33 +196,6 @@ function getStorage(res){
             deferred.reject("Cannot get storage body");
         }
     });
-
-
-
-    // http.request(options, function(response){
-    //     var data = '';
-    //     response.on('data', function(chunk){
-    //         data += chunk;
-    //     });
-    //     response.on('end', function(){
-    //         if(response.statusCode == 200){
-    //             data = JSON.parse(data);
-    //             console.log(data);
-    //             deferred.resolve(data);
-    //         } else {
-    //             res.status(500);
-    //             deferred.reject("Cannot get storage body");
-    //         }
-    //     });
-
-    // })
-    // .on('error', function(err){
-    //     console.log(err);
-    //     res.status(500);
-    //     deferred.reject("Error when requesting from storage: " + err.code);
-    // })  
-    // .end();
-
     return deferred.promise;
 }
 
@@ -160,6 +203,9 @@ function postChannel(req, res, storage_response){
     console.log("postChannel called");
     var deferred = q.defer();
     var newChannel = req.body;
+    if("name" in newChannel){
+        res.analytics.CreateChannel.channel_name_length = newChannel.name.length;
+    }
     var newId = 0;
     var newChannels = [];
     if(storage_response.body != null){
@@ -228,6 +274,7 @@ function getChannels(req, res, storage_response){
             for(i=0; i<channels.length; i++){
                 channelIds.push(channels[i].id);
             }
+            res.analytics.AllChannels.total_channels = channelIds.length;
             deferred.resolve(channelIds);
         } else {
             deferred.resolve([]);
@@ -308,6 +355,7 @@ function getChannelById(req, res, storage_response){
                     console.log(channels[i].id);
                     console.log(channels[i]);
                     res.status(200);
+                    res.analytics.GetChannel.channel_id = req.params.cid;
                     deferred.resolve(channels[i]);
                 }
             }
@@ -394,6 +442,9 @@ function addPostToChannel(req, res, storage_response){
     console.log("addPostToChannel called");
     var deferred = q.defer();
     var newPost = req.body;
+    if("desc" in newPost){
+        res.analytics.SendMessage.message_length = newPost.desc.length;
+    }
     var cid = req.params.cid;
     var channels = [];
     var newId = 0;
@@ -477,6 +528,9 @@ function getPostFromChannelById(req, res, storage_response){
                         if(posts[j].id == pid){
                             var foundPid = true;
                             res.status(200);
+                            if("desc" in posts[j]){
+                                res.analytics.GetMessage.message_length = posts[j].desc.length;
+                            }
                             deferred.resolve(posts[j]);
                         }
                     }
@@ -505,6 +559,9 @@ function putPostFromChannelById(req, res, storage_response){
     console.log("putPostFromChannelById called");
     var deferred = q.defer();
     var newPost = req.body;
+    if("desc" in newPost){
+        res.analytics.UpdateMessage.message_length = newPost.desc.length;
+    }
     var cid = req.params.cid;
     var pid = req.params.pid;
     var channels = [];
@@ -663,24 +720,106 @@ function delPostFromChannelById(req, res, storage_response){
 
 
 
-function sendResponseSuccess(res, data){
+function sendResponseSuccess(res, receivedDate, data){
+    console.log("SUCCESS");
+    var servicedDate = new Date();
+    var received_time = ISODateString(receivedDate);
+    var serviced_time = ISODateString(servicedDate);
+    var eventName = res.analytics.eventName;
+    res.analytics[eventName].success = true;
+    var message = {}
+    message[eventName] = res.analytics[eventName];
+    var event = {
+        received_time: received_time,
+        serviced_time: serviced_time,
+        message: message
+    }
+    console.log(event);
     console.log();
     console.log("Successful: " + res.statusCode);
     console.log("Sending:");
     console.log(data);
     res.send(data);
+
+
+    sendAnalytics(event);
 }
 
-function sendResponseFailure(res, err){
+function sendResponseFailure(res, receivedDate, err){
+    console.log("FAIL");
+    var servicedDate = new Date();
+    var received_time = ISODateString(receivedDate);
+    var serviced_time = ISODateString(servicedDate);
+    var eventName = res.analytics.eventName;
+    res.analytics[eventName].success = false;
+    var message = {}
+    message[eventName] = res.analytics[eventName];
+    console.log(message);
+    var event = {
+        received_time: received_time,
+        serviced_time: serviced_time,
+        message: message
+    }
+    console.log(event);
+
     console.log();
     console.log("Failure: " + res.statusCode);
     console.log("Sending:");
     console.log(err);
     res.send(err);
+
+    sendAnalytics(event);
 }
 
 function failChain(err){
     return q.Promise.reject(err);
+}
+
+
+function sendAnalytics(event){
+    var option_url = 'http://' + analytics_url + ':' + analytics_port + '/v1/'
+    console.log(option_url);
+    var options = {
+        url: option_url,
+        method: "PUT",
+        json: true,   
+        body: event
+    
+    };
+    request(options, function(error, response, body) {
+        if(error){
+            console.log("error occured when sending analytics");
+        } else if(response.statusCode == 200){
+            console.log("Analytics OK");
+        } else {
+            console.log(response.statusCode);
+            console.log("Analytics is not 200");
+        }
+    });
+}
+
+Number.prototype.toPaddedString = function(len , fillchar) {
+  var result = this.toString();
+  if(typeof(fillchar) == 'undefined'){ fillchar = '0' };
+  while(result.length < len){ result = fillchar + result; };
+  return result;
+}
+
+Date.prototype.toRFC3339UTCString = function(supressFormating , supressMillis){
+  var dSep = ( supressFormating ? '' : '-' );
+  var tSep = ( supressFormating ? '' : ':' );
+  var result = this.getUTCFullYear().toString();
+  result += dSep + (this.getUTCMonth() + 1).toPaddedString(2);
+  result += dSep + this.getUTCDate().toPaddedString(2);
+  result += 'T' + this.getUTCHours().toPaddedString(2);
+  result += tSep + this.getUTCMinutes().toPaddedString(2);
+  result += tSep + this.getUTCSeconds().toPaddedString(2);
+  if((!supressMillis)&&(this.getUTCMilliseconds()>0)) result += '.' + this.getUTCMilliseconds().toPaddedString(3);
+  return result + 'Z';
+}
+
+function ISODateString(d){
+    return d.toRFC3339UTCString();
 }
 
 /*
