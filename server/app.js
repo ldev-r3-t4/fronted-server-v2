@@ -159,14 +159,14 @@ app.delete('/channels/:cid/posts/:pid', function(req, res){
           sendResponseFailure.bind(null, res, receivedDate));
 });
 
-app.get('/test', (req, res) => {
-    var receivedDate = new Date();
-    console.log('test path');
-    getStorage(res)
-    // .then(postChannelToStorage.bind(null, req, res), failChain)
-    .then(sendResponseSuccess.bind(null, res, receivedDate),
-          sendResponseFailure.bind(null, res, receivedDate));
-});
+// app.get('/test', (req, res) => {
+//     var receivedDate = new Date();
+//     console.log('test path');
+//     getStorage(res)
+//     // .then(postChannelToStorage.bind(null, req, res), failChain)
+//     .then(sendResponseSuccess.bind(null, res, receivedDate),
+//           sendResponseFailure.bind(null, res, receivedDate));
+// });
 
 
 app.listen(8080, function(){
@@ -451,8 +451,8 @@ function addPostToChannel(req, res, storage_response){
     console.log("addPostToChannel called");
     var deferred = q.defer();
     var newPost = req.body;
-    if("desc" in newPost){
-        res.analytics.SendMessage.message = newPost.desc;
+    if("text" in newPost){
+        res.analytics.SendMessage.message = newPost.text;
     }
     var cid = req.params.cid;
     var channels = [];
@@ -543,8 +543,8 @@ function getPostFromChannelById(req, res, storage_response){
                         if(posts[j].id == pid){
                             var foundPid = true;
                             res.status(200);
-                            if("desc" in posts[j]){
-                                res.analytics.GetMessage.message = posts[j].desc;
+                            if("text" in posts[j]){
+                                res.analytics.GetMessage.message = posts[j].text;
                             }
                             deferred.resolve(posts[j]);
                         }
@@ -574,8 +574,8 @@ function putPostFromChannelById(req, res, storage_response){
     console.log("putPostFromChannelById called");
     var deferred = q.defer();
     var newPost = req.body;
-    if("desc" in newPost){
-        res.analytics.UpdateMessage.new_message = newPost.desc;
+    if("text" in newPost){
+        res.analytics.UpdateMessage.new_message = newPost.text;
     }
     var cid = req.params.cid;
     var pid = req.params.pid;
@@ -601,8 +601,8 @@ function putPostFromChannelById(req, res, storage_response){
             var posts = channels[i].posts;
             for(j=0; j<posts.length; j++){
                 if(posts[j].id == pid){
-                    if("desc" in posts[j]){
-                        res.analytics.UpdateMessage.old_message = posts[j].desc;
+                    if("text" in posts[j]){
+                        res.analytics.UpdateMessage.old_message = posts[j].text;
                     }
                     var foundPid = true;
                     temp_id = posts[j].id;
@@ -688,8 +688,8 @@ function delPostFromChannelById(req, res, storage_response){
             for(j=0; j<posts.length; j++){
                 if(posts[j].id == pid){
                     var foundPid = true;
-                    if("desc" in posts[j]){
-                        res.analytics.DeleteMessage.message = posts[j].desc;
+                    if("text" in posts[j]){
+                        res.analytics.DeleteMessage.message = posts[j].text;
                     }
                     posts.splice(j, 1);
                     channels[i].posts = posts;
