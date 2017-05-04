@@ -335,7 +335,7 @@ function putChannel(req, res, newChannel) {
         } else {
             console.log(body);
             res.status(500);
-            deferred.reject("Cannot post channel.");
+            deferred.reject("Cannot update channel.");
         }
     });
 
@@ -436,7 +436,7 @@ function deleteChannelById(req, res, storage_response){
                 res.status(500);
                 deferred.reject("Error when requesting from storage: " + error.code);
             } else if(response.statusCode == 200){
-                deferred.resolve(body);
+                deferred.resolve("OK");
             } else {
                 console.log(body);
                 res.status(500);
@@ -648,11 +648,11 @@ function putPostFromChannelById(req, res, storage_response){
                 res.status(500);
                 deferred.reject("Error when requesting from storage: " + error.code);
             } else if(response.statusCode == 200){
-                deferred.resolve(body);
+                deferred.resolve("OK");
             } else {
                 console.log(body);
                 res.status(500);
-                deferred.reject("Cannot add post to channel.");
+                deferred.reject("Cannot update post on channel.");
             }
         });
     }
@@ -732,7 +732,7 @@ function delPostFromChannelById(req, res, storage_response){
                 res.status(500);
                 deferred.reject("Error when requesting from storage: " + error.code);
             } else if(response.statusCode == 200){
-                deferred.resolve(body);
+                deferred.resolve("OK");
             } else {
                 console.log(body);
                 res.status(500);
