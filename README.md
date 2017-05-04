@@ -12,7 +12,7 @@ node app.js
 
 EndPoints (server)
 ---
-**GET**  
+#### **GET**  
 - /channels  
   - (Returns array of channel ids)
 - /channels/:cid  
@@ -20,7 +20,7 @@ EndPoints (server)
 - /channels/:cid/posts/:pid
   - (Returns the specified post in the specified channel)
 
-**POST**  
+#### **POST**  
 - /channels
   - (Creates a new channel)
   - (Accepts JSON data)
@@ -30,13 +30,13 @@ EndPoints (server)
   - (Accepts JSON data)
   - (Returns the new post id)
 
-**PUT**
+#### **PUT**
 - /channels/:cid/posts/:pid
   - (Updates the specified post in the specified channel)
   - (Accepts JSON data)
   - (Returns "OK")
 
-**DELETE**
+#### **DELETE**
 - /channels/:cid
   - (Deletes the specified channel)
   - (Returns "OK")
