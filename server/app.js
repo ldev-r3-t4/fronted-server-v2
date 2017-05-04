@@ -7,7 +7,7 @@ app.use(bodyParser.json());
 var morgan = require('morgan');
 app.use(morgan('tiny'));
 
-var analytics_url = "52.37.198.100";
+var analytics_url = "ec2-35-166-158-199.us-west-2.compute.amazonaws.com";
 var analytics_port = 80;
 
 var storage_url = "ec2-54-69-164-246.us-west-2.compute.amazonaws.com";
@@ -18,9 +18,9 @@ app.get('/channels', function(req, res){
     var receivedDate = new Date();
     res.analytics = {
         eventName: "AllChannels",
+        success: false,
         AllChannels: {
-            "total_channels": 0,
-            "success": false
+            num_channels: 0
         }
     }
     getStorage(res)
@@ -34,9 +34,9 @@ app.post('/channels', function(req, res){
     var receivedDate = new Date();
     res.analytics = {
         eventName: "CreateChannel",
+        success: false,
         CreateChannel: {
-            channel_name_length: 1,
-            success: false
+            channel: ""
         }
     }
     getStorage(res)
@@ -55,9 +55,10 @@ app.get('/channels/:cid', function(req, res){
     var receivedDate = new Date();
     res.analytics = {
         eventName: "GetChannel",
+        success: false,
         GetChannel: {
-            channel_id: req.params.cid,
-            success: false
+            channel: "",
+            number_served: 0
         }
     }
 
@@ -76,9 +77,9 @@ app.delete('/channels/:cid', function(req, res){
     var receivedDate = new Date();
     res.analytics = {
         eventName: "DelChannel",
+        success: false,
         DelChannel: {
-            channel_id: req.params.cid,
-            success: false
+            channel: ""
         }
     }
     getStorage(res)
@@ -95,10 +96,10 @@ app.post('/channels/:cid/posts', function(req, res){
     var receivedDate = new Date();
     res.analytics = {
         eventName: "SendMessage",
+        success: false,
         SendMessage: {
-            message_length: 0,
-            channel_id: req.params.cid,
-            success: false
+            channel: "",
+            message: ""
         }
     }
     getStorage(res)
@@ -112,11 +113,10 @@ app.get('/channels/:cid/posts/:pid', function(req, res){
     var receivedDate = new Date();
     res.analytics = {
         eventName: "GetMessage",
+        success: false,
         GetMessage: {
-            message_length: 0,
-            channel_id: req.params.cid,
-            post_id: req.params.pid,
-            success: false
+            channel: "",
+            message: ""
         }
     }
      getStorage(res)
@@ -129,11 +129,12 @@ app.put('/channels/:cid/posts/:pid', function(req, res){
     var receivedDate = new Date();
     res.analytics = {
         eventName: "UpdateMessage",
+        success: false,
         UpdateMessage: {
-            message_length: 0,
-            channel_id: req.params.cid,
-            post_id: req.params.pid,
-            success: false
+            channel: "",
+            old_message: "",
+            new_message: ""
+
         }
     }
     getStorage(res)
@@ -146,10 +147,10 @@ app.delete('/channels/:cid/posts/:pid', function(req, res){
     var receivedDate = new Date();
     res.analytics = {
         eventName: "DeleteMessage",
+        success: false,
         DeleteMessage: {
-            channel_id: req.params.cid,
-            post_id: req.params.pid,
-            success: false
+            channel: "",
+            message: ""
         }
     }
     getStorage(res)
@@ -204,7 +205,7 @@ function postChannel(req, res, storage_response){
     var deferred = q.defer();
     var newChannel = req.body;
     if("name" in newChannel){
-        res.analytics.CreateChannel.channel_name_length = newChannel.name.length;
+        res.analytics.CreateChannel.channel = newChannel.name;
     }
     var newId = 0;
     var newChannels = [];
@@ -274,7 +275,7 @@ function getChannels(req, res, storage_response){
             for(i=0; i<channels.length; i++){
                 channelIds.push(channels[i].id);
             }
-            res.analytics.AllChannels.total_channels = channelIds.length;
+            res.analytics.AllChannels.num_channels = channelIds.length;
             deferred.resolve(channelIds);
         } else {
             deferred.resolve([]);
@@ -355,7 +356,12 @@ function getChannelById(req, res, storage_response){
                     console.log(channels[i].id);
                     console.log(channels[i]);
                     res.status(200);
-                    res.analytics.GetChannel.channel_id = req.params.cid;
+                    if("name" in channels[i]){
+                        res.analytics.GetChannel.channel = channels[i].name;
+                    }
+                    if("posts" in channels[i]){
+                        res.analytics.GetChannel.number_served = channels[i].posts.length;
+                    }
                     deferred.resolve(channels[i]);
                 }
             }
@@ -391,6 +397,9 @@ function deleteChannelById(req, res, storage_response){
     var foundId = false;
     for(i=0; i<channels.length; i++){
         if(channels[i].id == cid){
+            if("name" in channels[i]){
+                res.analytics.DelChannel.channel = channels[i].name;
+            }
             channels.splice(i, 1);
             foundId = true;
         }
@@ -443,7 +452,7 @@ function addPostToChannel(req, res, storage_response){
     var deferred = q.defer();
     var newPost = req.body;
     if("desc" in newPost){
-        res.analytics.SendMessage.message_length = newPost.desc.length;
+        res.analytics.SendMessage.message = newPost.desc;
     }
     var cid = req.params.cid;
     var channels = [];
@@ -460,6 +469,9 @@ function addPostToChannel(req, res, storage_response){
     var foundId = false;
     for(i=0; i<channels.length; i++){
         if(channels[i].id == cid){
+            if("name" in channels[i]){
+                res.analytics.SendMessage.channel = channels[i].name;
+            }
             newPost['id'] = channels[i]['nextPostId'];
             channels[i]['nextPostId'] = channels[i]['nextPostId'] + 1;
             channels[i]['posts'].push(newPost);
@@ -521,6 +533,9 @@ function getPostFromChannelById(req, res, storage_response){
             var channels = storage_response.body.channels;
             for(i=0; i<channels.length; i++){
                 if(channels[i].id == cid) {
+                    if("name" in channels[i]){
+                        res.analytics.GetMessage.channel = channels[i].name;
+                    }
                     var foundCid = true;
                     var foundPid = false;
                     var posts = channels[i].posts;
@@ -529,7 +544,7 @@ function getPostFromChannelById(req, res, storage_response){
                             var foundPid = true;
                             res.status(200);
                             if("desc" in posts[j]){
-                                res.analytics.GetMessage.message_length = posts[j].desc.length;
+                                res.analytics.GetMessage.message = posts[j].desc;
                             }
                             deferred.resolve(posts[j]);
                         }
@@ -560,7 +575,7 @@ function putPostFromChannelById(req, res, storage_response){
     var deferred = q.defer();
     var newPost = req.body;
     if("desc" in newPost){
-        res.analytics.UpdateMessage.message_length = newPost.desc.length;
+        res.analytics.UpdateMessage.new_message = newPost.desc;
     }
     var cid = req.params.cid;
     var pid = req.params.pid;
@@ -580,11 +595,15 @@ function putPostFromChannelById(req, res, storage_response){
     for(i=0; i<channels.length; i++){
         if(channels[i].id == cid){
             foundCid = true;
-            console.log('here');
+            if("name" in channels[i]){
+                res.analytics.UpdateMessage.channel = channels[i].name;
+            }
             var posts = channels[i].posts;
             for(j=0; j<posts.length; j++){
                 if(posts[j].id == pid){
-            console.log('here2');
+                    if("desc" in posts[j]){
+                        res.analytics.UpdateMessage.old_message = posts[j].desc;
+                    }
                     var foundPid = true;
                     temp_id = posts[j].id;
                     posts[j] = newPost;
@@ -662,10 +681,16 @@ function delPostFromChannelById(req, res, storage_response){
     for(i=0; i<channels.length; i++){
         if(channels[i].id == cid){
             foundCid = true;
+            if("name" in channels[i]){
+                res.analytics.DeleteMessage.channel = channels[i].name;
+            }
             var posts = channels[i].posts;
             for(j=0; j<posts.length; j++){
                 if(posts[j].id == pid){
                     var foundPid = true;
+                    if("desc" in posts[j]){
+                        res.analytics.DeleteMessage.message = posts[j].desc;
+                    }
                     posts.splice(j, 1);
                     channels[i].posts = posts;
                 }
@@ -726,13 +751,22 @@ function sendResponseSuccess(res, receivedDate, data){
     var received_time = ISODateString(receivedDate);
     var serviced_time = ISODateString(servicedDate);
     var eventName = res.analytics.eventName;
-    res.analytics[eventName].success = true;
+    res.analytics.success = true;
     var message = {}
     message[eventName] = res.analytics[eventName];
     var event = {
         received_time: received_time,
         serviced_time: serviced_time,
+        success: res.analytics.success,
         message: message
+    }
+    if(eventName == "GetMessage"){
+        event = {
+            received_time: received_time,
+            serviced_time: serviced_time,
+            success: res.analytics.success,
+            message: "GetMessage"
+        }
     }
     console.log(event);
     console.log();
@@ -751,14 +785,23 @@ function sendResponseFailure(res, receivedDate, err){
     var received_time = ISODateString(receivedDate);
     var serviced_time = ISODateString(servicedDate);
     var eventName = res.analytics.eventName;
-    res.analytics[eventName].success = false;
+    res.analytics.success = false;
     var message = {}
     message[eventName] = res.analytics[eventName];
     console.log(message);
     var event = {
         received_time: received_time,
         serviced_time: serviced_time,
+        success: res.analytics.success,
         message: message
+    }
+    if(eventName == "GetMessage"){
+        event = {
+            received_time: received_time,
+            serviced_time: serviced_time,
+            success: res.analytics.success,
+            message: "GetMessage"
+        }
     }
     console.log(event);
 
@@ -777,7 +820,7 @@ function failChain(err){
 
 
 function sendAnalytics(event){
-    var option_url = 'http://' + analytics_url + ':' + analytics_port + '/v1/'
+    var option_url = 'http://' + analytics_url + ':' + analytics_port + '/v2/'
     console.log(option_url);
     var options = {
         url: option_url,
