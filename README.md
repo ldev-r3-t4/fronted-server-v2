@@ -5,14 +5,10 @@
 node app.js
 ```
 
-#### blob-storage (Optional Storage Server - Created for development)
-```sh
-node app.js
-```
-
 EndPoints (server)
 ---
-#### **GET**  
+### **GET**  
+---
 - **/channels**  
   - (Returns array of channel ids)
 - **/channels/:cid**
@@ -20,7 +16,8 @@ EndPoints (server)
 - **/channels/:cid/posts/:pid**
   - (Returns the specified post in the specified channel)
 
-#### **POST**  
+### **POST**  
+---
 - **/channels**
   - (Creates a new channel)
   - (Accepts JSON data)
@@ -30,13 +27,15 @@ EndPoints (server)
   - (Accepts JSON data)
   - (Returns the new post id)
 
-#### **PUT**
+### **PUT**
+---
 - **/channels/:cid/posts/:pid**
   - (Updates the specified post in the specified channel)
   - (Accepts JSON data)
   - (Returns "OK")
 
-#### **DELETE**
+### **DELETE**
+---
 - **/channels/:cid**
   - (Deletes the specified channel)
   - (Returns "OK")
@@ -69,3 +68,10 @@ EndPoints (posts-server)
 ### localhost  
 - [API Collection Link](https://www.getpostman.com/collections/a9310d90304242443007)
 - [Testing Collection Link](https://www.getpostman.com/collections/4e29fe66253e824769f5)
+
+## Other
+---
+### blob-storage (Optional Storage Server - Created for development)
+```sh
+node app.js
+```
