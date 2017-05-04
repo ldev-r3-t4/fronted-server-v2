@@ -1,34 +1,48 @@
 # Frontend Server Repo - Large Scale - team 4  
 
-### blob-storage - Temporary storage server
-```sh
-node app.js
-```
-
 ### server - Frontend server
 ```sh
 node app.js
 ```
-  
-[comment]: <> (**TODO:**) 
+
+#### blob-storage (Optional Storage Server - Created for development)
+```sh
+node app.js
+```
 
 EndPoints (server)
 ---
 **GET**  
 - /channels  
-- /channels/:cid 
+  - (Returns array of channel ids)
+- /channels/:cid  
+  - (Returns the specified channel)
 - /channels/:cid/posts/:pid
+  - (Returns the specified post in the specified channel)
 
 **POST**  
 - /channels
+  - (Creates a new channel)
+  - (Accepts JSON data)
+  - (Returns the new channel id)
 - /channels/:cid/posts
+  - (Creates a new post in the specified channel)
+  - (Accepts JSON data)
+  - (Returns the new post id)
 
 **PUT**
 - /channels/:cid/posts/:pid
+  - (Updates the specified post in the specified channel)
+  - (Accepts JSON data)
+  - (Returns "OK")
 
 **DELETE**
 - /channels/:cid
+  - (Deletes the specified channel)
+  - (Returns "OK")
 - /channels/:cid/posts/:pid
+  - (Deletes the specified post in the specified channel)
+  - (Returns "OK")
 
 <!---
 EndPoints (posts-server)
