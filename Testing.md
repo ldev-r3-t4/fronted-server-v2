@@ -12,8 +12,7 @@ The tests perform the following actions:
 - Deleting a post.
 - Deleting a channel.
 
-These tests cover the main functionally of the API.
-As the API continues to develop more tests will need to be created.
+These tests rely on the functionality of the [storage server](http://ec2-54-69-164-246.us-west-2.compute.amazonaws.com:8000/v1/ui/#/primary/)
 
 All the tests are containerized in a docker image.
 Running the docker image displays the results of the tests.
