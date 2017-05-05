@@ -20,13 +20,14 @@ Instructions for running the image are located below.
 ## The following commands run the tests for the front-end server portion.
 **Note:** Docker must be installed
 
+### Using Server Hosted on AWS
 ```sh
 docker pull mattg13/round3team4-front-end-server-aws-tests
 ```
 ```sh
 docker run mattg13/round3team4-front-end-server-aws-tests
 ```  
-
+### Using server running locally
 ```sh
 docker pull mattg13/round3team4-front-end-server-local-tests
 ```
