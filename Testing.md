@@ -21,8 +21,15 @@ Instructions for running the image are located below.
 **Note:** Docker must be installed
 
 ```sh
-docker pull mattg13/round3team4-frontend-server-tests:1.0
+docker pull mattg13/round3team4-front-end-server-aws-tests
 ```
 ```sh
-docker run mattg13/round3team4-frontend-server-tests:1.0
+docker run mattg13/round3team4-front-end-server-aws-tests
+```  
+
+```sh
+docker pull mattg13/round3team4-front-end-server-local-tests
+```
+```sh
+docker run mattg13/round3team4-front-end-server-local-tests
 ```  
