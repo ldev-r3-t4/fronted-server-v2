@@ -60,6 +60,10 @@ EndPoints (posts-server)
 - /posts/:id 
 -->
 
+## Docker Tests (Main testing method)
+---
+Please read [Testing.md](https://github.com/ldev-r3-t4/frontend-server-v2/blob/master/Testing.md)
+
 ## Postman Tests
 ---
 ### AWS host (http://ec2-34-209-243-205.us-west-2.compute.amazonaws.com:8080)
